@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Регистрация хуйла</title>
+</head>
+<body>
+    <h2>Форма регистрации</h2>
+    <form method="post" action="registeruser/">
+        {% csrf_token %}
+        <p>Имя:<br> <input name="name" /></p>
+        <p>
+            Ваш психотип:<br />
+            <select multiple name="psychotypes">
+                <option>Уеба</option>
+                <option>Уебан</option>
+                <option>Шлюха</option>
+                <option>Тварь и хуйло</option>
+             </select>
+        </p>
+        <input type="submit" value="Send" />
+    </form>
+</body>
+</html>
+

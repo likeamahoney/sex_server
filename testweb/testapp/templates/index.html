@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>ПЕРЕПИСЬ ПИДОРОВ</title>
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/style.css'%}" type="text/css">
+</head>
+<body class="index_back">
+    <h2>Список уебанов</h2>
+    <a href="register/">Регистрация хуила</a>
+    <table border="3" height="50%" width="50%" bordercolor="blue" align=center cellpadding ="10">
+        <thead><th>Имя</th><th>Психотипы</th></thead>
+        {% for user in users %}
+        <tr>
+            <td><b>{{ user.name }}</b></td>
+            <td>
+                {% for ptype in user.ptypes.all %}
+                    {{ptype.name}} 
+                {% endfor %}
+            </td>
+            <td>
+                <a href="edit/{{user.name}}">Изменить</a> | <a href="delete/{{user.name}}">Удалить</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+  {% load static %}
+  {% block extrascripts %}
+  <script type="text/JavaScript" src="{% static 'js/scripts.js' %}"></script>
+  {% if welcome %}
+  <script> print( " {{ welcome }} " ) </script>
+  {% endif %}
+  {% if user_exist %}
+  <script> print( " Пошел нахуй уебище - ты уже существуешь!" ) </script>
+  {% endif %}
+  {% if user_not_exist %}
+  <script> print( " Пошел нахуй уебище - тебя нет!" ) </script>
+  {% endif %}
+  {% endblock %}
+</body>
+</html>
+
