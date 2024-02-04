@@ -6,6 +6,10 @@ from .forms import RegisterForm  #, EditForm
 
 from .models import User, PsychoType
 
+import logging
+
+log = logging.getLogger(__name__)
+
 def index(request):#, user_exist = False, user_not_exist = False, welcome = ""):
     #host = request.META["HTTP_HOST"] # получаем адрес сервера
     #user_agent = request.META["HTTP_USER_AGENT"]    # получаем данные бразера
@@ -33,8 +37,10 @@ def register(request):
     #return render(request, "roulette.html")
     if request.method == "POST":
         edit = request.POST.get("edit", False)
-        user, created = User.objects.get_or_create(name = request.POST.get("name"))
+        name = request.POST.get("name")
+        user, created = User.objects.get_or_create(name = name)
         if not edit and not created:
+            log.error(f"Failed to create user: User - {name} exist")
             return HttpResponseRedirect("/?user_exist=True")
         ptypes = request.POST.getlist("psycho_types", [])
 
@@ -46,8 +52,10 @@ def register(request):
 
         user.save()
         if not edit:
+            log.debug(f"User - {name} created")
             return HttpResponseRedirect(f"/?welcome=Добро пожаловать в семью {' и '.join(ptypes)}")
         else:
+            log.debug(f"User - {name} edited")
             return HttpResponseRedirect("/?welcome=Съебал хуета")
 
     if request.GET.get("edit", False):
@@ -82,6 +90,8 @@ def delete(request, name):
     try:
         user = User.objects.get(name = name)
         user.delete()
+        log.debug(f"User - {name} deleted")
         return redirect("index")
     except User.DoesNotExist:
+        log.error(f"Failed to delete user: User - {name} does't exist")
         return HttpResponseRedirect("/?user_not_exist=True")
