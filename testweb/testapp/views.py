@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, reverse
 
 from django.http import HttpResponse, HttpResponseRedirect
 
-from .forms import RegisterForm, EditForm
+from .forms import RegisterForm  #, EditForm
 
 from .models import User, PsychoType
 
@@ -32,36 +32,51 @@ def about(request):
 def register(request):
     #return render(request, "roulette.html")
     if request.method == "POST":
+        edit = request.POST.get("edit", False)
         user, created = User.objects.get_or_create(name = request.POST.get("name"))
-        if not created:
+        if not edit and not created:
             return HttpResponseRedirect("/?user_exist=True")
         ptypes = request.POST.getlist("psycho_types", [])
-        user.save()
-        
+
+        user.ptypes.clear()
         for ptype in ptypes:
             pt, _ = PsychoType.objects.get_or_create(name = ptype)
             user.ptypes.add(pt)
-        return HttpResponseRedirect(f"/?welcome=Добро пожаловать в семью {' и '.join(ptypes)}")
+            pt.save()
 
-    form = EditForm() if request.GET.get("edit", False) else RegisterForm()
-    return render(request, "register.html", { "form" : form })
-
-def edit(request, name):
-    try:
-        if request.method == "POST":
-            user = User.objects.get(name = name)
-            ptypes = request.POST.getlist("psycho_types", [])
-            user.save()
-            user.ptypes.clear()
-
-            for ptype in ptypes:
-                pt, _ = PsychoType.objects.get_or_create(name = ptype)
-                user.ptypes.add(pt)
+        user.save()
+        if not edit:
+            return HttpResponseRedirect(f"/?welcome=Добро пожаловать в семью {' и '.join(ptypes)}")
+        else:
             return HttpResponseRedirect("/?welcome=Съебал хуета")
 
-        return HttpResponseRedirect("/register/?edit=True")
-    except User.DoesNotExist:
-        return HttpResponseRedirect("/?user_not_exist=True")
+    if request.GET.get("edit", False):
+      name = request.GET.get("name")
+      form = RegisterForm(name = name)
+      return render(request, "register.html", { "form" : form, "name" : name, "edit" : True})
+    else:
+      form = RegisterForm()
+      return render(request, "register.html", { "form" : form})
+
+def edit(request, name):
+    #try:
+    #    if request.method == "POST":
+    #        user = User.objects.get(name = name)
+    #        ptypes = request.POST.getlist("psycho_types", [])
+    #        user.ptypes.clear()
+
+    #        for ptype in ptypes:
+    #            pt, created = PsychoType.objects.get_or_create(name = ptype)
+    #            if created:
+    #                pt.save()
+    #            user.ptypes.add(pt)
+
+    #        user.save(update_fields=["ptypes"])
+    #        return HttpResponseRedirect("/?welcome=Съебал хуета")
+
+    return HttpResponseRedirect(f'/register/?edit=True&name={name}')
+    #except User.DoesNotExist:
+    #    return HttpResponseRedirect("/?user_not_exist=True")
 
 def delete(request, name):
     try:
