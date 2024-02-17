@@ -6,9 +6,78 @@ from .forms import RegisterForm  #, EditForm
 
 from .models import User, PsychoType
 
+from .serializers import UserSerializer
+
+from django.core import serializers
+
+from rest_framework import viewsets
+
+from drf_yasg.utils import swagger_auto_schema
+
+from rest_framework import filters
+
+from django_filters.rest_framework import DjangoFilterBackend
+
+from django.db import IntegrityError, transaction
+
 import logging
 
 log = logging.getLogger(__name__)
+
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    #http_method_names = ['get', 'post', 'patch', 'delete']
+    filter_backends = [
+        DjangoFilterBackend,
+        filters.SearchFilter,
+        filters.OrderingFilter,
+    ]
+
+    filterset_fields = {
+        "name": ["icontains", "startswith"],
+        "ptypes__name": ["icontains", "startswith"],
+    }
+
+    search_fields = ['=name', '=ptypes__name']
+
+    ordering_fields = ['name']
+    ordering = ['-name']
+    #http_method_names = ['get', 'post', 'update', 'delete']
+    def get_queryset(self):
+        return User.objects.all()
+
+    @swagger_auto_schema(responce_body=UserSerializer)
+    def list(self, request, *args, **kwargs):
+        return super(UserViewSet, self).list(request, *args, **kwargs)
+
+    @transaction.atomic
+    @swagger_auto_schema(request_body=UserSerializer)
+    def create(self, request, *args, **kwargs):
+        return super(UserViewSet, self).create(request, *args, **kwargs)
+
+    @transaction.atomic
+    @swagger_auto_schema(request_body=UserSerializer)
+    def update(self, request, *args, **kwargs):
+        return super(UserViewSet, self).update(request, *args, **kwargs)
+
+    @transaction.atomic
+    @swagger_auto_schema(request_body=UserSerializer)
+    def partial_update(self, request, *args, **kwargs):
+        return super(UserViewSet, self).partial_update(request, *args, **kwargs)
+
+    @transaction.atomic
+    @swagger_auto_schema(request_body=UserSerializer)
+    def delete(self, request, *args, **kwargs):
+        return super(UserViewSet, self).delete(request, *args, **kwargs)
+
+    @transaction.atomic
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    @transaction.atomic
+    def perform_update(self, serializer):
+        serializer.save(user=self.request.user)
 
 def index(request):#, user_exist = False, user_not_exist = False, welcome = ""):
     #host = request.META["HTTP_HOST"] # получаем адрес сервера
@@ -20,6 +89,8 @@ def index(request):#, user_exist = False, user_not_exist = False, welcome = ""):
     #    <p>Path: {path}</p>
     #    <p>User-agent: {user_agent}</p>
     #""")
+    data = serializers.serialize("json", User.objects.all())#, fields=["name", "size"])
+    print(data)
     users = User.objects.all()
     return render(request, "index.html", context = { "users" : users, "user_exist" :  request.GET.get("user_exist", False), "user_not_exist" :  request.GET.get("user_not_exist", False), "welcome" :  request.GET.get("welcome", "")})
 

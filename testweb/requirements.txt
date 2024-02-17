@@ -1,1 +1,6 @@
 django
+drf-yasg
+django-rest-swagger
+djangorestframework
+pyyaml
+django-filter
